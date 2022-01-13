@@ -26,13 +26,12 @@ Stretch goals:
 - [ ] [Drone bot](https://learn.upleveled.io/courses/btcmp-l-webfs-gen-0/modules/cheatsheet-tasks/#upleveled-drone) has been tagged and responded with a passing message
 - [ ] Correct GitHub commit message format (see [Writing Commit Messages](https://learn.upleveled.io/courses/btcmp-l-webfs-gen-0/modules/cheatsheet-git-github/#writing-commit-messages))
 
-
 unresolved questions:
 
 - what does scrape mean?
   - extracting, taking information from some location
 
-----
+---
 
 ## TODO
 

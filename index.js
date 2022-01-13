@@ -1,8 +1,8 @@
-import events from 'events';
-import fs from 'fs';
-import https from 'https';
+import events from 'node:events';
+import * as fs from 'node:fs/promises';
+import https from 'node:https';
 
-const url = 'https://memegen-link-examples-upleveled.netlify.app';
+const pageUrl = 'https://memegen-link-examples-upleveled.netlify.app';
 const imagesEmitter = new events.EventEmitter();
 const targetDir = './memes';
 
@@ -10,9 +10,9 @@ function leftFillNum(num, targetLength) {
   return num.toString().padStart(targetLength, 0);
 }
 
-//Get the HTML string from website
-async function getIndexPage(url) {
-  let penddingRequest = https.get(url, (res) => {
+// Get the HTML string from
+function getIndexPage(url) {
+  const pendingRequest = https.get(url, (res) => {
     res.setEncoding('utf8');
     let body = '';
     res.on('data', (data) => {
@@ -20,16 +20,16 @@ async function getIndexPage(url) {
       imagesEmitter.emit('😝', body);
     });
     res.on('end', () => {
-      //I'm already gone 🤫
+      // I'm already gone 🤫
     });
   });
   imagesEmitter.on('🤪', () => {
-    //I know what I'm doing 🤣
-    penddingRequest.abort();
+    // I know what I'm doing 🤣
+    pendingRequest.destroy();
   });
 }
 
-async function download(url, dest) {
+function download(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest, { flags: 'wx' });
 
@@ -38,7 +38,7 @@ async function download(url, dest) {
         response.pipe(file);
       } else {
         file.close();
-        fs.unlink(dest, () => {});
+        await fs.unlink(dest, () => {});
         reject(
           `Server responded with ${response.statusCode}: ${response.statusMessage}`,
         );
@@ -47,7 +47,7 @@ async function download(url, dest) {
 
     request.on('error', (err) => {
       file.close();
-      fs.unlink(dest, () => {});
+      await fs.unlink(dest, () => {});
       reject(err.message);
     });
 
@@ -61,7 +61,7 @@ async function download(url, dest) {
       if (err.code === 'EEXIST') {
         reject('File already exists');
       } else {
-        fs.unlink(dest, () => {});
+        await fs.unlink(dest, () => {});
         reject(err.message);
       }
     });
@@ -69,32 +69,32 @@ async function download(url, dest) {
 }
 
 imagesEmitter.on('😝', (data) => {
-  let found = data.match(/<img.*src=(["|']([^>]+))/g);
+  const found = data.match(/<img.*src=(["|']([^>]+))/g);
   if (found && found.length > 10) {
     imagesEmitter.emit('🤪');
     for (const [index, value] of Object.entries(found)) {
       if (index < 10) {
-        let last = value.match(/src=["|']([^"|']+)/);
+        const last = value.match(/src=["|']([^"|']+)/);
         if (last && last[1]) {
-          download(last[1], `${targetDir}/${leftFillNum(index, 2)}.jpg`);
+          await download(last[1], `${targetDir}/${leftFillNum(index, 2)}.jpg`);
         }
       }
     }
   }
 });
 
-//Make targetDir if doesn't exist
+// Make targetDir if doesn't exist
 if (!fs.existsSync(targetDir)) {
   fs.mkdirSync(targetDir);
 }
 
-fs.promises
+await fs.promises
   .readdir(targetDir)
   // If promise resolved and
-  // datas are fetched
+  // data are fetched
   .then((filenames) => {
-    for (let filename of filenames) {
-      fs.unlink(`${targetDir}/${filename}`, () => {});
+    for (const filename of filenames) {
+      await fs.unlink(`${targetDir}/${filename}`, () => {});
     }
   })
   // If promise is rejected
@@ -103,5 +103,5 @@ fs.promises
   })
   // Do this anyway
   .then(() => {
-    getIndexPage(url);
+    getIndexPage(pageUrl);
   });
